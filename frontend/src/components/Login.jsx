@@ -27,7 +27,6 @@ function Login({ onLoginScreen, onAuthSuccess }) {
     setError("");
 
     try {
-      await services.auth.getCsrf();
       const authPromise = onLoginScreen
         ? services.auth.login({ username, password })
         : services.auth.signup({ username, password });

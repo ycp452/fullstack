@@ -2,13 +2,7 @@ import express from "express";
 import csrf from "csurf";
 import { setupUserController } from "../controllers/index.js";
 
-const csrfProtection = csrf({
-  cookie: {
-    key: "XSRF-TOKEN",
-    httpOnly: false, // must be readable by JS
-    sameSite: "strict",
-  },
-});
+const csrfProtection = csrf();
 
 export const apiRouter = express.Router();
 apiRouter.use(csrfProtection);

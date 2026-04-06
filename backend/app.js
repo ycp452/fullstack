@@ -44,10 +44,16 @@ sequelize
   .sync({ alter: true })
   .then(() => {
     console.log("Database synced");
-    app.listen(port, () => {
-      console.log(`Example app listening at http://localhost:${port}`);
-    });
   })
   .catch((err) => {
     console.error("Unable to sync database:", err);
   });
+
+// Local development only
+if (process.env.NODE_ENV !== "production") {
+  app.listen(port, () => {
+    console.log(`Example app listening at http://localhost:${port}`);
+  });
+}
+
+export default app;

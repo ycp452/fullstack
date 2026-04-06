@@ -1,9 +1,12 @@
 import express from "express";
 import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
 import { apiRouter } from "./routes/index.js";
 import { sequelize } from "./models/index.js";
+
+const PgSession = connectPgSimple(session);
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const port = process.env.PORT || 8000;
@@ -20,15 +23,19 @@ app.use(express.static(path.join(__dirname, "../frontend/dist")));
 app.use(express.json());
 app.use(
   session({
+    store: new PgSession({
+      conString: process.env.DATABASE_URL,
+      tableName: "session",
+      createTableIfMissing: true,
+    }),
     cookie: {
       path: "/",
       httpOnly: true,
-      secure: false,
-      maxAge: null,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
-    // use random secret
     secret: SESSION_SECRET,
-    name: "sessionId", // don't omit this option
+    name: "sessionId",
     resave: false,
     saveUninitialized: false,
   })

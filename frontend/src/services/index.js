@@ -6,6 +6,9 @@ const services = {};
 
 const instance = axios.create({
   baseURL: "/api/v1",
+  withCredentials: true,
+  xsrfCookieName: "XSRF-TOKEN",
+  xsrfHeaderName: "X-XSRF-TOKEN",
 });
 
 services.auth = makeAuth(instance);

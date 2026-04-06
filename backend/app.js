@@ -2,7 +2,9 @@ import express from "express";
 import session from "express-session";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
-import { apiRouter } from "./routes";
+import { apiRouter } from "./routes/index.js";
+import { sequelize } from "./models/index.js";
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const port = process.env.PORT || 8000;
 const { SESSION_SECRET } = process.env;
@@ -38,6 +40,14 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
 });
 
-app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
-});
+sequelize
+  .sync({ alter: true })
+  .then(() => {
+    console.log("Database synced");
+    app.listen(port, () => {
+      console.log(`Example app listening at http://localhost:${port}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Unable to sync database:", err);
+  });

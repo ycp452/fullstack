@@ -10,16 +10,27 @@ export const makeAuth = (instance) => ({
    * }}
    */
   login({ username, password }) {
-    // return instance.post("/login", { username, password });
-    // We haven't implemented login in back-end,
-    // so we wait 3 seconds and assume login successfully
-    // Once back-end is done, uncomment the first line
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        // We can make login fail, execute reject rather than resolve
-        // reject();
-        resolve();
-      }, 3000);
-    });
+    return instance.post("/login", { username, password });
+  },
+  /**
+   * @param {{
+   *   username: string,
+   *   password: string,
+   * }}
+   */
+  signup({ username, password }) {
+    return instance.post("/signup", { username, password });
+  },
+  me() {
+    return instance.get("/me");
+  },
+  logout() {
+    return instance.post("/logout");
+  },
+  getAbout() {
+    return instance.get("/about");
+  },
+  saveAbout(bio) {
+    return instance.patch("/about", { bio });
   },
 });

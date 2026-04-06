@@ -3,94 +3,113 @@ import { Link, useNavigate } from "react-router-dom";
 import services from "../services";
 import Spinner from "./Spinner";
 
-function Login() {
+function Login({ onLoginScreen, onAuthSuccess }) {
   const navigate = useNavigate();
   const [textInput, setTextInput] = useState({
     username: "",
     password: "",
   });
   const [readOnly, setReadOnly] = useState(false);
+  const [error, setError] = useState("");
   const { username, password } = textInput;
 
-  /** @type {React.ChangeEventHandler<HTMLInputElement>} */
   const handleTextInputChange = ({ target: { name, value } }) => {
     setTextInput((prev) => ({
       ...prev,
       [name]: value,
     }));
+    if (error) setError(""); // Clear error when typing
   };
 
-  /** @type {React.FormEventHandler<HTMLFormElement>} */
-  const handleFormSubmit = (event) => {
+  const handleFormSubmit = async (event) => {
     event.preventDefault();
     setReadOnly(true);
-    services.auth
-      .login({ username, password })
-      .then(() => {
-        navigate("/");
-      })
-      .catch(() => {
-        setReadOnly(false);
-      });
+    setError("");
+
+    try {
+      const authPromise = onLoginScreen
+        ? services.auth.login({ username, password })
+        : services.auth.signup({ username, password });
+
+      const resp = await authPromise;
+      onAuthSuccess(resp.data);
+      navigate("/");
+    } catch (err) {
+      setError(err.response?.data?.message || "Authentication failed. Please try again.");
+      setReadOnly(false);
+    }
   };
 
   return (
-    <div className="w-full h-full grid place-items-center">
-      <div className="flex items-center justify-center text-center">
-        <div className="my-4">
-          <div className="text-2xl">Sign In</div>
-          <div className="border border-gray-300 rounded m-4 py-6 px-4 mobile-s:px-6">
-            <form
-              onSubmit={handleFormSubmit}
-              className="grid grid-cols-1 gap-2 w-60 mobile-s:w-64 sm:w-72"
-            >
-              <label className="block text-left">
-                <span className="text-gray-700">Username</span>
-                <input
-                  type="text"
-                  name="username"
-                  className="mt-1 block w-full rounded disabled:opacity-50 disabled:cursor-not-allowed disabled:select-none"
-                  placeholder=""
-                  value={username}
-                  readOnly={readOnly}
-                  disabled={readOnly}
-                  onChange={handleTextInputChange}
-                />
-              </label>
-              <label className="block text-left">
-                <span className="text-gray-700">Password</span>
-                <input
-                  type="password"
-                  name="password"
-                  className="mt-1 block w-full rounded disabled:opacity-50 disabled:cursor-not-allowed disabled:select-none"
-                  placeholder=""
-                  value={password}
-                  readOnly={readOnly}
-                  disabled={readOnly}
-                  onChange={handleTextInputChange}
-                />
-              </label>
-              <button
-                type="submit"
-                className="relative my-2 flex-shrink-0 bg-blue-600 text-white text-base font-semibold py-2 px-4 rounded-lg hover:shadow-md hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-200  disabled:opacity-50 disabled:cursor-wait"
-                disabled={readOnly}
-              >
-                Sign in
-                {readOnly && (
-                  <div className="absolute inset-0 flex justify-end items-center">
-                    <Spinner className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
-                  </div>
-                )}
-              </button>
-              <div className="border-t mb-2" />
-              <div>
-                No account?{" "}
-                <Link to="/signup" className="underline text-blue-700">
-                  Create one
-                </Link>
-              </div>
-            </form>
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="w-full max-w-md px-4">
+        <div className="light-card p-10 shadow-xl shadow-slate-200/50">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold tracking-tight text-slate-900">
+              {onLoginScreen ? "Sign In" : "Join Us"}
+            </h2>
+            <p className="text-slate-500 mt-2">
+              {onLoginScreen ? "Access your personal dashboard" : "Create a new account today"}
+            </p>
           </div>
+
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded text-red-700 text-sm animate-shake">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleFormSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-700 ml-1">Username</label>
+              <input
+                type="text"
+                name="username"
+                className="input-field disabled:opacity-50"
+                placeholder="Your username"
+                value={username}
+                readOnly={readOnly}
+                disabled={readOnly}
+                onChange={handleTextInputChange}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-700 ml-1">Password</label>
+              <input
+                type="password"
+                name="password"
+                className="input-field disabled:opacity-50"
+                placeholder="••••••••"
+                value={password}
+                readOnly={readOnly}
+                disabled={readOnly}
+                onChange={handleTextInputChange}
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="btn-primary w-full py-4 text-lg shadow-md hover:shadow-xl transition-all disabled:animate-pulse"
+              disabled={readOnly}
+            >
+              {readOnly ? "Processing..." : onLoginScreen ? "Continue" : "Register"}
+            </button>
+
+            <div className="pt-6 text-center border-t border-slate-100">
+              <span className="text-slate-500 text-sm">
+                {onLoginScreen ? "Need an account? " : "Already have an account? "}
+              </span>
+              <Link
+                to={onLoginScreen ? "/signup" : "/login"}
+                className="text-cyan-600 font-semibold hover:text-cyan-700 transition-colors"
+              >
+                {onLoginScreen ? "Register now" : "Log in here"}
+              </Link>
+            </div>
+          </form>
         </div>
       </div>
     </div>
